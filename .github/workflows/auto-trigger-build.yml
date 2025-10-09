@@ -66,6 +66,8 @@ jobs:
 
       - name: Trigger build for first changed package only
         if: env.CHANGED_PKGS != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           FIRST_PKG_VER=$(echo "${{ env.CHANGED_PKGS }}" | awk '{print $1}')
           PKG=$(echo "$FIRST_PKG_VER" | cut -d'=' -f1)
