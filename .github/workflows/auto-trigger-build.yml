@@ -1,0 +1,76 @@
+name: Auto-trigger ARM64 build on version bump
+
+on:
+  push:
+    branches:
+      - php81
+    paths:
+      - VERSION.txt
+
+jobs:
+  detect-and-trigger:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect changed versions
+        id: detect
+        run: |
+          # Only process if VERSION.txt is in the push
+          if ! git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | grep -q '^VERSION.txt$'; then
+            echo "VERSION.txt not changed. Exiting."
+            exit 0
+          fi
+
+          echo "VERSION.txt changed — checking version differences."
+
+          # Get file content before and after this commit
+          OLD_CONTENT=$(git show ${{ github.event.before }}:VERSION.txt 2>/dev/null || true)
+          NEW_CONTENT=$(cat VERSION.txt)
+
+          # Compare line by line and extract changed packages
+          echo "$OLD_CONTENT" > old.txt
+          echo "$NEW_CONTENT" > new.txt
+
+          DIFF=$(diff -U0 old.txt new.txt | grep -E "^[+-]" | grep -vE "^(---|\+\+\+)")
+          echo "DIFF:"
+          echo "$DIFF"
+
+          if [ -z "$DIFF" ]; then
+            echo "No version number changes detected."
+            exit 0
+          fi
+
+          # Extract new (added or changed) versions
+          NEW_LINES=$(echo "$DIFF" | grep '^+' | cut -c2-)
+          echo "NEW LINES:"
+          echo "$NEW_LINES"
+
+          CHANGED_PKGS=()
+          for line in $NEW_LINES; do
+            NAME=$(echo "$line" | cut -d'=' -f1)
+            VER=$(echo "$line" | cut -d'=' -f2)
+            CHANGED_PKGS+=("$NAME=$VER")
+          done
+
+          echo "CHANGED_PKGS=${CHANGED_PKGS[*]}" >> $GITHUB_ENV
+          echo "Detected package updates: ${CHANGED_PKGS[*]}"
+
+      - name: Trigger builds for changed packages
+        if: env.CHANGED_PKGS != ''
+        run: |
+          for pkg_ver in ${{ env.CHANGED_PKGS }}; do
+            PKG=$(echo "$pkg_ver" | cut -d'=' -f1)
+            VER=$(echo "$pkg_ver" | cut -d'=' -f2)
+            echo "Triggering build for $PKG version $VER"
+          done
+      #      gh workflow run self-host-arm64-build.yml \
+      #        --ref main \
+      #        -f package="\"$PKG\"" \
+      #        -f version="$VER" \
+      #        -f revision="1" \
+      #        -f distro="\"bookworm\"" || echo "Failed to trigger $PKG"
