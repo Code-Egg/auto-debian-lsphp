@@ -73,7 +73,7 @@ jobs:
           PKG=$(echo "$FIRST_PKG_VER" | cut -d'=' -f1)
           VER=$(echo "$FIRST_PKG_VER" | cut -d'=' -f2)
           echo "Triggering build for first changed package: $PKG version $VER"
-          gh workflow run self-host-arm64-build.yml \
-            --ref php81 \
+          gh workflow run self-host-arm-build.yml \
+            --ref ${{ github.ref_name }} \
             -f package="\"$PKG\"" \
             -f distro="\"bookworm\"" || echo "Failed to trigger $PKG"
