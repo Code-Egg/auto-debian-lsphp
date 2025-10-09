@@ -1,4 +1,4 @@
-name: Auto-trigger ARM64 build on version bump
+name: Auto-trigger build on version bump
 
 on:
   push:
@@ -70,13 +70,19 @@ jobs:
         run: |
           DISTROS="\"noble\",\"jammy\",\"focal\",\"trixie\",\"bookworm\",\"bullseye\""
           for pkg_ver in ${{ env.CHANGED_PKGS }}; do
-          PKG=$(echo "$pkg_ver" | cut -d'=' -f1)
-          VER=$(echo "$pkg_ver" | cut -d'=' -f2)
-          echo "Triggering build for $PKG version $VER"
-          
-          gh workflow run self-host-arm-build.yml \
-            --ref ${{ github.ref_name }} \
-            -f package="\"$PKG\"" \
-            -f distro="$DISTROS" \
-            || echo "Failed to trigger $PKG"
+            PKG=$(echo "$pkg_ver" | cut -d'=' -f1)
+            VER=$(echo "$pkg_ver" | cut -d'=' -f2)
+            echo "Triggering amd build for $PKG version $VER"
+            gh workflow run self-host-amd-build.yml \
+              --ref ${{ github.ref_name }} \
+              -f package="\"$PKG\"" \
+              -f distro="$DISTROS" \
+              || echo "Failed to trigger $PKG"
+            sleep 120
+            echo "Triggering arm build for $PKG version $VER"
+            gh workflow run self-host-arm-build.yml \
+              --ref ${{ github.ref_name }} \
+              -f package="\"$PKG\"" \
+              -f distro="$DISTROS" \
+              || echo "Failed to trigger $PKG"
           done
