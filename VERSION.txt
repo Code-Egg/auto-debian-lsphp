@@ -6,4 +6,4 @@ msgpack=3.0.0
 memcached=3.3.0
 pear=1.10.15
 redis=6.2.0
-igbinary=3.2.13
+igbinary=3.2.14
