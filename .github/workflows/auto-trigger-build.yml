@@ -64,17 +64,14 @@ jobs:
           echo "CHANGED_PKGS=${CHANGED_PKGS[*]}" >> $GITHUB_ENV
           echo "Detected package updates: ${CHANGED_PKGS[*]}"
 
-      - name: Trigger builds for changed packages
+      - name: Trigger build for first changed package only
         if: env.CHANGED_PKGS != ''
         run: |
-          for pkg_ver in ${{ env.CHANGED_PKGS }}; do
-            PKG=$(echo "$pkg_ver" | cut -d'=' -f1)
-            VER=$(echo "$pkg_ver" | cut -d'=' -f2)
-            echo "Triggering build for $PKG version $VER"
-          done
-      #      gh workflow run self-host-arm64-build.yml \
-      #        --ref main \
-      #        -f package="\"$PKG\"" \
-      #        -f version="$VER" \
-      #        -f revision="1" \
-      #        -f distro="\"bookworm\"" || echo "Failed to trigger $PKG"
+          FIRST_PKG_VER=$(echo "${{ env.CHANGED_PKGS }}" | awk '{print $1}')
+          PKG=$(echo "$FIRST_PKG_VER" | cut -d'=' -f1)
+          VER=$(echo "$FIRST_PKG_VER" | cut -d'=' -f2)
+          echo "Triggering build for first changed package: $PKG version $VER"
+          gh workflow run self-host-arm64-build.yml \
+            --ref main \
+            -f package="\"$PKG\"" \
+            -f distro="\"bookworm\"" || echo "Failed to trigger $PKG"
