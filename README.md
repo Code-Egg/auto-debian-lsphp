@@ -21,4 +21,4 @@ To build a custom package on a local server.
 * Join [the GoLiteSpeed Slack community](https://litespeedtech.com/slack) for real-time discussion
 * Post to [the LiteSpeed Forums](https://litespeedtech.com/support/forum/) for community support
 * Report problems with these docs in [the project's Issues](https://github.com/litespeedrepo/debian-lsphp/issues)
-* Contribute to these docs with [a Pull Request](https://github.com/litespeedrepo/debian-lsphp/pulls). This project is intended to be a safe, welcoming space for collaboration.
+* Contribute to these docs with [a Pull Request](https://github.com/litespeedrepo/debian-lsphp/pulls). This project is intended to be a safe, welcoming space for collaboration. 
