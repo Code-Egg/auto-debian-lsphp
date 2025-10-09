@@ -68,14 +68,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-              for pkg_ver in ${{ env.CHANGED_PKGS }}; do
-              PKG=$(echo "$pkg_ver" | cut -d'=' -f1)
-              VER=$(echo "$pkg_ver" | cut -d'=' -f2)
-              echo "Triggering build for $PKG version $VER"
-              
-              gh workflow run self-host-arm-build.yml \
-                --ref ${{ github.ref_name }} \
-                -f package="\"$PKG\"" \
-                -f distro="\"bookworm\"" \
-                || echo "Failed to trigger $PKG"
-              done
+          DISTROS="\"noble\",\"jammy\",\"focal\",\"trixie\",\"bookworm\",\"bullseye\""
+          for pkg_ver in ${{ env.CHANGED_PKGS }}; do
+          PKG=$(echo "$pkg_ver" | cut -d'=' -f1)
+          VER=$(echo "$pkg_ver" | cut -d'=' -f2)
+          echo "Triggering build for $PKG version $VER"
+          
+          gh workflow run self-host-arm-build.yml \
+            --ref ${{ github.ref_name }} \
+            -f package="\"$PKG\"" \
+            -f distro="$DISTROS" \
+            || echo "Failed to trigger $PKG"
+          done
