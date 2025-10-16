@@ -1,4 +1,4 @@
-lsphp=8.1.33
+lsphp=8.1.32
 apcu=5.1.27
 igbinary=3.2.16
 imagick=3.8.0
