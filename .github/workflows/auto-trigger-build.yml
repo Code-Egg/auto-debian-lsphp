@@ -63,7 +63,7 @@ jobs:
           echo "CHANGED_PKGS=${CHANGED_PKGS[*]}" >> $GITHUB_ENV
           echo "Detected package updates: ${CHANGED_PKGS[*]}"
 
-      - name: Trigger builds for all changed packages
+      - name: Trigger AMD64  builds for all changed packages
         if: env.CHANGED_PKGS != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -78,7 +78,17 @@ jobs:
               -f package="\"$PKG\"" \
               -f distro="$DISTROS" \
               || echo "Failed to trigger $PKG"
-            sleep 120
+          done
+
+      - name: Trigger ARM64 builds for all changed packages
+        if: env.CHANGED_PKGS != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DISTROS="\"noble\",\"jammy\",\"focal\",\"trixie\",\"bookworm\",\"bullseye\""
+          for pkg_ver in ${{ env.CHANGED_PKGS }}; do
+            PKG=$(echo "$pkg_ver" | cut -d'=' -f1)
+            VER=$(echo "$pkg_ver" | cut -d'=' -f2)
             echo "Triggering arm build for $PKG version $VER"
             gh workflow run self-host-arm-build.yml \
               --ref ${{ github.ref_name }} \
