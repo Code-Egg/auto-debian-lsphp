@@ -27,17 +27,16 @@ jobs:
           OLD_CONTENT=$(git show ${{ github.event.before }}:VERSION.txt 2>/dev/null || true)
           NEW_CONTENT=$(cat VERSION.txt)
 
-          echo "$OLD_CONTENT" > old.txt
-          echo "$NEW_CONTENT" > new.txt
+          echo "$OLD_CONTENT" | sort > old.txt
+          echo "$NEW_CONTENT" | sort > new.txt
 
-          # Get added/changed lines
-          DIFF=$(diff -U0 old.txt new.txt | grep -E "^[+-]" | grep -vE "^(---|\+\+\+)")
+          DIFF=$(diff -U0 old.txt new.txt | grep -E "^\+" | grep -vE "^(---|\+\+\+)")
           if [ -z "$DIFF" ]; then
-            echo "No version changes detected."
+            echo "No version changes detected (order-only change ignored)."
             exit 0
           fi
 
-          NEW_LINES=$(echo "$DIFF" | grep '^+' | cut -c2-)
+          NEW_LINES=$(echo "$DIFF" | cut -c2-)
           echo "NEW_LINES:"
           echo "$NEW_LINES"
 
@@ -45,21 +44,20 @@ jobs:
           while IFS= read -r line; do
             NAME=${line%%=*}
             VER=${line#*=}
-
             OLD_VER=$(echo "$OLD_CONTENT" | grep "^$NAME=" | cut -d'=' -f2 || echo "")
             if [[ "$OLD_VER" != "" ]] && dpkg --compare-versions "$VER" lt "$OLD_VER"; then
               echo "Skipping downgrade for $NAME ($OLD_VER -> $VER)"
               continue
             fi
-
-            CHANGED_PKGS+=("$NAME=$VER")
+            if [[ "$VER" != "$OLD_VER" ]]; then
+              CHANGED_PKGS+=("$NAME=$VER")
+            fi
           done <<< "$NEW_LINES"
 
           if [ ${#CHANGED_PKGS[@]} -eq 0 ]; then
             echo "No valid version upgrades detected."
             exit 0
           fi
-
           echo "CHANGED_PKGS=${CHANGED_PKGS[*]}" >> $GITHUB_ENV
           echo "Detected package updates: ${CHANGED_PKGS[*]}"
 
