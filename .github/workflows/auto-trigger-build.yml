@@ -30,7 +30,7 @@ jobs:
           echo "$OLD_CONTENT" | sort > old.txt
           echo "$NEW_CONTENT" | sort > new.txt
 
-          DIFF=$(diff -U0 old.txt new.txt | grep -E "^\+" | grep -vE "^(---|\+\+\+)")
+          DIFF=$(diff -U0 old.txt new.txt 2>/dev/null | grep -E "^\+" | grep -vE "^(---|\+\+\+)" || true)
           if [ -z "$DIFF" ]; then
             echo "No version changes detected (order-only change ignored)."
             exit 0
