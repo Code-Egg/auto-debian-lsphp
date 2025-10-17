@@ -69,6 +69,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           DISTROS="\"noble\",\"jammy\",\"focal\",\"trixie\",\"bookworm\",\"bullseye\""
+          TARGET_WORKFLOW=".github/workflows/self-host-amd-build.yml"
+          if ! gh api repos/${{ github.repository }}/contents/${TARGET_WORKFLOW} --jq '.path' &>/dev/null; then
+            echo "Workflow ${TARGET_WORKFLOW} not found. Skipping AMD64 build triggers."
+            exit 0
+          fi
+
           for pkg_ver in ${{ env.CHANGED_PKGS }}; do
             PKG=$(echo "$pkg_ver" | cut -d'=' -f1)
             VER=$(echo "$pkg_ver" | cut -d'=' -f2)
@@ -86,6 +92,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           DISTROS="\"noble\",\"jammy\",\"focal\",\"trixie\",\"bookworm\",\"bullseye\""
+          TARGET_WORKFLOW=".github/workflows/self-host-arm-build.yml"
+          if ! gh api repos/${{ github.repository }}/contents/${TARGET_WORKFLOW} --jq '.path' &>/dev/null; then
+            echo "Workflow ${TARGET_WORKFLOW} not found. Skipping ARM64 build triggers."
+            exit 0
+          fi          
           for pkg_ver in ${{ env.CHANGED_PKGS }}; do
             PKG=$(echo "$pkg_ver" | cut -d'=' -f1)
             VER=$(echo "$pkg_ver" | cut -d'=' -f2)
