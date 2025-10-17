@@ -4,6 +4,6 @@ igbinary=3.2.16
 imagick=3.8.0
 ioncube=15.0.0
 memcached=3.4.0
-msgpack=3.0.0
 redis=6.2.0
 pear=1.10.16
+msgpack=3.0.0
